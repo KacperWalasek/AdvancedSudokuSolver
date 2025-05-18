@@ -1,0 +1,306 @@
+use eframe::egui::{self, CentralPanel, Frame, Grid, TextEdit, Ui, Vec2, Stroke, Rounding, Color32};
+use eframe::{App, CreationContext};
+use egui::{CornerRadius, Margin};
+
+#[derive(Default)]
+pub struct SudokuApp {
+    board: [[String; 9]; 9],
+}
+
+impl App for SudokuApp {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        CentralPanel::default().show(ctx, |ui| {
+            let cell_size = Vec2::new(30.0, 30.0);
+            Grid::new("sudoku")
+                .num_columns(9)
+                .spacing([0.0, 0.0])
+                .show(ui, |ui| {
+                    for row in 0..9 {
+                        for col in 0..9 {
+                            // Detect if it's a border cell for 3x3 box
+                            let thick_top = row % 3 == 0;
+                            let thick_left = col % 3 == 0;
+                            let thick_bottom = row == 8;
+                            let thick_right = col == 8;
+
+                            // Define border thickness
+                            let stroke = Stroke::new(2.0, Color32::BLACK);
+                            let frame = Frame {
+                                inner_margin: egui::Margin::ZERO,
+                                outer_margin: egui::Margin::ZERO,
+                                corner_radius: CornerRadius::ZERO,
+                                shadow: Default::default(),
+                                fill: Color32::WHITE,
+                                stroke: Stroke::NONE, // we’ll paint manually
+                            };
+
+                            frame.show(ui, |ui| {
+                                let response = ui.add_sized(
+                                    cell_size,
+                                    TextEdit::singleline(&mut self.board[row][col])
+                                        .font(egui::TextStyle::Monospace)
+                                        .horizontal_align(egui::Align::Center)
+                                        .margin(Margin::ZERO),
+                                );
+
+                                // Draw border manually
+                                let rect = response.rect;
+                                let painter = ui.painter();
+
+                                // if thick_top {
+                                //     painter.line_segment(
+                                //         [rect.left_top(), rect.right_top()],
+                                //         stroke,
+                                //     );
+                                // }
+                                // if thick_left {
+                                //     painter.line_segment(
+                                //         [rect.left_top(), rect.left_bottom()],
+                                //         stroke,
+                                //     );
+                                // }
+                                // if thick_right {
+                                //     painter.line_segment(
+                                //         [rect.right_top(), rect.right_bottom()],
+                                //         stroke,
+                                //     );
+                                // }
+                                // if thick_bottom {
+                                //     painter.line_segment(
+                                //         [rect.left_bottom(), rect.right_bottom()],
+                                //         stroke,
+                                //     );
+                                // }
+                            });
+                        }
+                        ui.end_row();
+                    }
+                });
+        });
+    }
+}
+
+fn main() -> eframe::Result<()> {
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Sudoku in egui",
+        options,
+        Box::new(|_cc: &CreationContext| Ok(Box::new(SudokuApp::default()))),
+    )
+}
+
+// use eframe::egui;
+// use egui::{Color32, Label, Vec2, Widget};
+// use sudoku::Sudoku;
+// mod sudoku;
+
+// fn main() {
+//     let native_options = eframe::NativeOptions::default();
+//     let _ = eframe::run_native(
+//         "SudokuSolver",
+//         native_options,
+//         Box::new(|cc| Ok(Box::new(SudokuSolverApp::new(cc)))),
+//     );
+// }
+
+// #[derive(Default)]
+// struct SudokuSolverApp {
+//     show_label: bool,
+//     script: String,
+//     sudoku: Sudoku,
+// }
+
+// impl SudokuSolverApp {
+//     fn new(_: &eframe::CreationContext<'_>) -> Self {
+//         Self::default()
+//     }
+// }
+
+// impl Sudoku {
+//     pub fn show(&mut self, ui: &mut egui::Ui) {
+//         egui::Frame::new()
+//             .stroke(egui::Stroke::new(1.0, Color32::BLACK))
+//             .inner_margin(0.0)
+//             .outer_margin(0.0)
+//             .show(ui, |ui| {
+//         ui.horizontal(|ui| {
+//             ui.columns(2, |cols| {
+//                 cols[0].vertical(|ui| self.show_sudoku_3x3_section(ui, 0, 0));
+//                 cols[0].set_min_width(0.0);
+//                 cols[0].set_max_width(5.0);
+//                 cols[1].vertical(|ui| self.show_sudoku_3x3_section(ui, 0, 0));
+//             });
+//         });
+//         // ui.horizontal(|ui| {
+//         //     for box_x in 0..3 {
+//         //         self.show_sudoku_3x3_section(ui, box_x, 0);
+//         //     }
+//         // });
+//         // ui.horizontal(|ui| {
+//         //     for box_x in 0..3 {
+//         //         self.show_sudoku_3x3_section(ui, box_x, 1);
+//         //     }
+//         // });
+//         // ui.horizontal(|ui| {
+//         //     for box_x in 0..3 {
+//         //         self.show_sudoku_3x3_section(ui, box_x, 2);
+//         //     }
+//         // });
+//         // egui::Grid::new("sudoku")
+//         //     .spacing(Vec2::new(0.0, 0.0))
+//         //     .show(ui, |ui| {
+//         //         for box_y in 0..3 {
+//         //             for box_x in 0..3 {
+//         //                 self.show_sudoku_3x3_section(ui, box_x, box_y);
+//         //             }
+//         //             ui.end_row();
+//         //         }
+//         //     });
+//         });
+//     }
+
+//     pub fn show_sudoku_3x3_section(&mut self, ui: &mut egui::Ui, box_x: usize, box_y: usize) {
+//         egui::Frame::new()
+//             //     .stroke(egui::Stroke::new(1.0, Color32::RED))
+//             //     .inner_margin(0.0)
+//             //     .outer_margin(0.0)
+//             .show(ui, |ui| {
+//                 ui.horizontal(|ui| {
+//                     ui.label("a");
+//                     ui.label("a");
+//                     ui.label("a");
+//                 });
+//                 ui.horizontal(|ui| {
+//                     ui.label("a");
+//                     ui.label("a");
+//                     ui.label("a");
+//                 });
+//                 // ui.horizontal(|ui| {
+//                 //     ui.label("a");
+//                 //     ui.label("a");
+//                 //     ui.label("a");
+//                 // });
+//                 // egui::Grid::new(format!("box{}{}", box_x, box_y))
+//                 //     .spacing(Vec2::new(0.0, 0.0))
+//                 //     .show(ui, |ui| {
+//                 //         let begin_x = box_x * 3;
+//                 //         let begin_y = box_y * 3;
+//                 //         for j in 0..3 {
+//                 //             for i in 0..3 {
+//                 //                 ui.label("a");
+//                 //                 // Sudoku::show_sudoku_box(
+//                 //                 //     ui,
+//                 //                 //     &mut self.digits[begin_x + i][begin_y + j],
+//                 //                 // );
+//                 //             }
+//                 //             if j != 2 {
+//                 //                 ui.end_row();
+//                 //             }
+//                 //         }
+//                 //     });
+//             });
+//     }
+
+//     fn show_sudoku_box(ui: &mut egui::Ui, digit: &mut Option<u8>) {
+//         let mut str = match digit {
+//             Some(x) => x.to_string(),
+//             None => "".to_string(),
+//         };
+//         egui::Frame::new()
+//             .stroke(egui::Stroke::new(0.2, Color32::BLACK))
+//             .corner_radius(0.0)
+//             .show(ui, |ui| {
+//                 let txt = egui::TextEdit::singleline(&mut str).frame(false);
+//                 if txt.ui(ui).changed() {
+//                     if str.is_empty() {
+//                         *digit = None;
+//                     }
+//                     match str.parse::<u8>() {
+//                         Ok(d) => {
+//                             if (1..=9).contains(&d) {
+//                                 *digit = Some(d);
+//                             }
+//                         }
+//                         Err(_) => (),
+//                     }
+//                 }
+//             });
+//     }
+// }
+// impl eframe::App for SudokuSolverApp {
+//     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+//         egui::CentralPanel::default().show(ctx, |ui| {
+//             ui.heading("Sudoku Solver");
+//             if ui.button("no elo").clicked() {
+//                 self.show_label = !self.show_label;
+//             }
+//             if self.show_label {
+//                 ui.label("no siema");
+//             }
+//             ui.text_edit_multiline(&mut self.script);
+//             ui.label(&self.script);
+//             self.sudoku.show(ui);
+//             // egui::Grid::new("sudoku")
+//             //     .spacing(Vec2::new(0.0, 0.0))
+//             //     .show(ui, |ui| {
+//             //         for box_y in 0..3 {
+//             //             for box_x in 0..3 {
+//             //                 egui::Frame::new().show(ui, |ui| {
+//             //                     egui::Grid::new(format!("box{}{}", box_x, box_y))
+//             //                         .spacing(Vec2::new(0.0, 0.0))
+//             //                         .show(ui, |ui| {
+//             //                             for _ in 0..3 {
+//             //                                 for _ in 0..3 {
+//             //                                     ui.label("a");
+//             //                                 }
+//             //                                 ui.end_row();
+//             //                             }
+//             //                         });
+//             //                 });
+//             //             }
+//             //             ui.end_row();
+//             //         }
+//             //     });
+
+//             //     egui::Grid::new("some_unique_id")
+//             //     egui::Frame::new()
+//             //     .stroke(egui::Stroke::new(1.0,Color32::BLACK))
+//             //     .show(ui, |ui| {
+//             //     egui::Grid::new("some_unique_id")
+//             //         .min_col_width(30.0)
+//             //         .min_row_height(30.0)
+//             //         .spacing(Vec2::new(0.0, 0.0))
+//             //         .show(ui, |ui| {
+//             //             for i in 0..9 {
+//             //                 for j in 0..9 {
+//             //                     let mut str = match self.sudoku.digits[i][j] {
+//             //                         Some(x) => x.to_string(),
+//             //                         None => "".to_string(),
+//             //                     };
+//             //                     egui::Frame::new()
+//             //                         //.stroke(egui::Stroke::new(1.0, Color32::BLACK))
+//             //                         .corner_radius(0.0)
+//             //                         .show(ui, |ui| {
+//             //                             let txt = egui::TextEdit::singleline(&mut str).frame(false);
+//             //                             if txt.ui(ui).changed() {
+//             //                                 if str.is_empty() {
+//             //                                     self.sudoku.digits[i][j] = None;
+//             //                                 }
+//             //                                 match str.parse::<u8>() {
+//             //                                     Ok(digit) => {
+//             //                                         if (1..=9).contains(&digit) {
+//             //                                             self.sudoku.digits[i][j] = Some(digit);
+//             //                                         }
+//             //                                     }
+//             //                                     Err(_) => (),
+//             //                                 }
+//             //                             }
+//             //                         });
+//             //                 }
+//             //                 ui.end_row();
+//             //             }
+//             //         });
+//             // });
+//         });
+//     }
+// }
